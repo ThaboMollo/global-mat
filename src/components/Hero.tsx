@@ -1,17 +1,34 @@
 import { Button } from "@/components/ui/button";
 import heroMat from "@/assets/hero-mat.jpg";
+import { useEffect, useState } from "react";
 
 const Hero = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const images = [heroMat];
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [images.length]);
+
   const scrollToContact = () => {
     document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const currentImage = images[currentIndex];
+
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden">
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-center transition-[background-image] duration-700 ease-in-out"
         style={{
-          backgroundImage: `linear-gradient(to right, rgba(29, 41, 57, 0.95), rgba(29, 41, 57, 0.7)), url(${heroMat})`,
+          backgroundImage: `linear-gradient(to right, rgba(29, 41, 57, 0.95), rgba(29, 41, 57, 0.7)), url(${currentImage})`,
         }}
       />
       

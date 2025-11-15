@@ -1,48 +1,75 @@
 import * as React from "react";
-import { Slot } from "@radix-ui/react-slot";
-import { cva, type VariantProps } from "class-variance-authority";
+import type { ButtonProps as MTButtonProps } from "@material-tailwind/react";
+import { Button as MTButton } from "@material-tailwind/react";
 
 import { cn } from "@/lib/utils";
 
-const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[var(--shadow-soft)]",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border-2 border-primary/20 bg-background hover:bg-primary/5 hover:border-primary/40",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-[var(--shadow-soft)]",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-        hero: "bg-accent text-accent-foreground hover:bg-accent/90 shadow-[var(--shadow-elegant)] font-semibold",
-      },
-      size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  },
-);
+type Variant = "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "hero";
+type Size = "default" | "sm" | "lg" | "icon";
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
+  extends Omit<MTButtonProps, "variant" | "size" | "color" | "fullWidth" | "className"> {
+  variant?: Variant;
+  size?: Size;
+  className?: string;
+  asChild?: boolean; // kept for API compatibility, not used with Material Tailwind
 }
 
+const mapVariantToMaterial = (variant: Variant = "default") => {
+  switch (variant) {
+    case "destructive":
+      return { variant: "filled" as const, color: "red" as const };
+    case "outline":
+      return { variant: "outlined" as const, color: "blue" as const };
+    case "secondary":
+      return { variant: "filled" as const, color: "gray" as const };
+    case "ghost":
+      return { variant: "text" as const, color: "blue" as const };
+    case "link":
+      return { variant: "text" as const, color: "blue" as const };
+    case "hero":
+      return { variant: "gradient" as const, color: "amber" as const };
+    case "default":
+    default:
+      return { variant: "filled" as const, color: "blue" as const };
+  }
+};
+
+const mapSizeToMaterial = (size: Size = "default") => {
+  switch (size) {
+    case "sm":
+      return { size: "sm" as const, className: "h-9 px-3" };
+    case "lg":
+      return { size: "lg" as const, className: "h-11 px-8" };
+    case "icon":
+      return { size: "md" as const, className: "h-10 w-10 p-0" };
+    case "default":
+    default:
+      return { size: "md" as const, className: "h-10 px-4" };
+  }
+};
+
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+  ({ className, variant = "default", size = "default", asChild: _asChild, ...props }, ref) => {
+    const { variant: mtVariant, color } = mapVariantToMaterial(variant);
+    const { size: mtSize, className: sizeClasses } = mapSizeToMaterial(size);
+
+    return (
+      <MTButton
+        ref={ref as any}
+        variant={mtVariant}
+        color={color}
+        size={mtSize}
+        className={cn(
+          "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+          sizeClasses,
+          className,
+        )}
+        {...props}
+      />
+    );
   },
 );
 Button.displayName = "Button";
 
-export { Button, buttonVariants };
+export { Button };
