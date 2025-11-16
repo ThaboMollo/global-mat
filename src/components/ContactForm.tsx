@@ -20,15 +20,36 @@ const ContactForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const response = await fetch("/.netlify/functions/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
-    toast.success("Thank you! We'll be in touch soon.", {
-      description: "Your inquiry has been received successfully.",
-    });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to send email");
+      }
 
-    setFormData({ name: "", email: "", phone: "", message: "" });
-    setIsSubmitting(false);
+      const result = await response.json();
+      console.log("Email sent successfully:", result);
+
+      toast.success("Thank you! We'll be in touch soon.", {
+        description: "Your inquiry has been received successfully.",
+      });
+
+      setFormData({ name: "", email: "", phone: "", message: "" });
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Something went wrong. Please try again later.", {
+        description: error instanceof Error ? error.message : "Unable to send your message.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
