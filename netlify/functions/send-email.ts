@@ -79,10 +79,26 @@ export const handler: Handler = async (
       };
     }
 
+    // TEMPORARY: Resend free tier only allows sending to verified email
+    // Remove this check after verifying a domain
+    if (email !== "mollo.t.mponya@gmail.com") {
+      console.warn(`Email to ${email} blocked - Resend requires domain verification for non-verified emails`);
+      // Still return success to user, but log the limitation
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          message: "Form submitted successfully. Note: Email delivery requires domain verification.",
+          note: "Currently in test mode - emails only sent to verified address"
+        }),
+      };
+    }
+
     // Send email to admin
     const adminEmailResult = await resend.emails.send({
       from: "Global Mat Contact Form <onboarding@resend.dev>", // Update this with your verified domain
-      to: ["clarence@globalmat.co.za"],
+      to: ["mollo.t.mponya@gmail.com"], // Temporarily using your verified email for testing
       subject: `New Contact Form Submission from ${name}`,
       react: AdminNotification({ name, email, phone, message }),
     });
