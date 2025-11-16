@@ -3,8 +3,6 @@ import { Resend } from "resend";
 import { AdminNotification } from "../../emails/AdminNotification";
 import { UserConfirmation } from "../../emails/UserConfirmation";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 interface ContactFormData {
   name: string;
   email: string;
@@ -26,6 +24,8 @@ export const handler: Handler = async (
   event: HandlerEvent,
   context: HandlerContext
 ) => {
+  // Initialize Resend inside the handler to ensure env vars are available
+  const resend = new Resend(process.env.RESEND_API_KEY);
   // Enable CORS
   const headers = {
     "Access-Control-Allow-Origin": "*",
